@@ -1,4 +1,4 @@
-package com.example.toby;
+package com.example.toby.di;
 
 public class SimpleHelloService2 implements HelloService {
     @Override

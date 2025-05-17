@@ -1,4 +1,4 @@
-package com.example.toby;
+package com.example.toby.frontcontroller;
 
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;

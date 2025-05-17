@@ -1,4 +1,4 @@
-package com.example.toby;
+package com.example.toby.servlet;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

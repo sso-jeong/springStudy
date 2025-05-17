@@ -1,9 +1,9 @@
-package com.example.toby;
+package com.example.toby.di;
 
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.http.HttpHeaders;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,29 +14,31 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-// 프론트컨트롤러에서 모든걸 처리할 수 없으니 컨트롤러에 역할을 위임한다.
-public class HellobootApplication_em_front2 {
+public class HellobootApplication_spring_container {
     public static void main(String[] args) {
+        // spring container
+        GenericApplicationContext appCon = new GenericApplicationContext();
+       // appCon.registerBean(HelloController2.class); // bean 등록
+        appCon.registerBean(HelloController3.class); // bean 등록
+        appCon.registerBean(SimpleHelloService2.class); // class type bean 등록
+        appCon.refresh();
 
         ServletWebServerFactory sf = new TomcatServletWebServerFactory();
         WebServer webServer = sf.getWebServer(servletContext -> {
-
-            HelloController2 hctr = new HelloController2();
-
             servletContext.addServlet("frontcontroller", new HttpServlet() {
                         @Override
                         protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-                            if(req.getRequestURI().equals("/hello2") && req.getMethod().equals(HttpMethod.GET.name())){
+                            if(req.getRequestURI().equals("/hello3") && req.getMethod().equals(HttpMethod.GET.name())){
 
-                                String ret = hctr.hello2("name");
+                                String name = req.getParameter("name");
+                                // 1. 매핑작업이 하드코딩되어있음
+                                // 2. 파라미터가 하나뿐임
+                                HelloController3 hCtr2 = appCon.getBean(HelloController3.class); // DI+싱글톤
+                                String ret = hCtr2.hello3(name);
 
-                                resp.setStatus(HttpStatus.OK.value());
-                                resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+                                resp.setContentType(MediaType.TEXT_PLAIN_VALUE);
                                 resp.getWriter().println(ret);
-                            }
-                            else if (req.getRequestURI().equals("/user")){
-                                //
                             }
                             else {
                                 resp.setStatus(HttpStatus.NOT_FOUND.value());
