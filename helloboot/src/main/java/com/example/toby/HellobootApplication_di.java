@@ -12,9 +12,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 
-// 방법1. 저수준의 웹 띄우기
+// 방법1. di 기본
 // http -v :8080/"hello"
-public class HellobootApplication_tomcat {
+public class HellobootApplication_di {
     public static void main(String[] args) throws Exception {
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(8080);
@@ -23,20 +23,32 @@ public class HellobootApplication_tomcat {
         // Web root 경로가 필요해서 아래 로직이 필요함
         Context context = tomcat.addContext("", new File(".").getAbsolutePath());
 
+        HelloController ctr = new HelloController();
         // 2. Servlet 등록
-        Tomcat.addServlet(context, "helloServlet", new HttpServlet() {
+        Tomcat.addServlet(context, "frontController", new HttpServlet() {
             @Override
             protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-                String name = req.getParameter("name");
 
-                resp.setStatus(HttpStatus.OK.value());
-                resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
-                resp.getWriter().write(name);
+                if(req.getRequestURI().equals("/hello")) {
+
+                    String name = req.getParameter("name");
+                    String param = ctr.hello(name);
+
+                    resp.setStatus(HttpStatus.OK.value());
+                    resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
+                    resp.getWriter().write(param);
+                }
+                else if (req.getRequestURI().equals("/user")){
+                    //
+                }
+                else {
+                    resp.setStatus(HttpStatus.NOT_FOUND.value());
+                }
             }
         });
 
         // 3. URL 매핑
-        context.addServletMappingDecoded("/hello", "helloServlet");
+        context.addServletMappingDecoded("/*", "frontController");
 
         // 4. 서버 시작
         tomcat.getConnector();
