@@ -11,7 +11,8 @@ import org.springframework.web.servlet.DispatcherServlet;
 // HellobootApplication_spring_container 안에는 서블릿 코드 안에 하드코딩이 되어있음
 public class HellobootApplication_less {
     public static void main(String[] args) {
-        // spring container
+        // 1. spring container를 만드는 작업 후
+        // 2. Servlet container 를 코드로 실행하면서 Servlet 을 등록하는 작업
         GenericWebApplicationContext appCon = new GenericWebApplicationContext();
         appCon.registerBean(HelloController4.class); // bean 등록
         appCon.registerBean(SimpleHelloService2.class); // class type bean 등록
