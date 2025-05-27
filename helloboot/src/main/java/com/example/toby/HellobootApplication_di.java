@@ -1,8 +1,14 @@
 package com.example.toby;
 
+import com.example.toby.dispatcherServlet.SimpleHelloService;
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServer;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -16,44 +22,37 @@ import java.io.IOException;
 // http -v :8080/"hello"
 public class HellobootApplication_di {
     public static void main(String[] args) throws Exception {
-        Tomcat tomcat = new Tomcat();
-        tomcat.setPort(8080);
+        // 1. spring 컨테이너 생성
+        GenericApplicationContext appCon = new GenericApplicationContext();
+        appCon.registerBean(HelloController.class);
+        appCon.registerBean(SimpleHelloService.class);
+        appCon.refresh();
 
-        // 1. Context 생성
-        // Web root 경로가 필요해서 아래 로직이 필요함
-        Context context = tomcat.addContext("", new File(".").getAbsolutePath());
+        ServletWebServerFactory sf = new TomcatServletWebServerFactory();
 
-        HelloController ctr = new HelloController();
-        // 2. Servlet 등록
-        Tomcat.addServlet(context, "frontController", new HttpServlet() {
-            @Override
-            protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        WebServer webServer = sf.getWebServer(servletContext -> {
+            servletContext.addServlet("frontcontroller", new HttpServlet() {
+                @Override
+                protected void service(HttpServletRequest req, HttpServletResponse resp) throws  IOException {
 
-                if(req.getRequestURI().equals("/hello")) {
+                    if (req.getRequestURI().equals("/hello") && req.getMethod().equals(HttpMethod.GET.name())) {
 
-                    String name = req.getParameter("name");
-                    String param = ctr.hello(name);
+                        String name = req.getParameter("name");
+                        // 1. 매핑작업이 하드코딩되어있음
+                        // 2. 파라미터가 하나뿐임
+                        HelloController hCtr = appCon.getBean(HelloController.class); // DI+싱글톤
+                        String ret = hCtr.hello(name);
 
-                    resp.setStatus(HttpStatus.OK.value());
-                    resp.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE);
-                    resp.getWriter().write(param);
+                        resp.setContentType(MediaType.TEXT_PLAIN_VALUE);
+                        resp.getWriter().println(ret);
+                    } else {
+                        resp.setStatus(HttpStatus.NOT_FOUND.value());
+                    }
                 }
-                else if (req.getRequestURI().equals("/user")){
-                    //
-                }
-                else {
-                    resp.setStatus(HttpStatus.NOT_FOUND.value());
-                }
-            }
+            }).addMapping("/*"); // 모든 요청을 받는다
         });
+        webServer.start();
 
-        // 3. URL 매핑
-        context.addServletMappingDecoded("/*", "frontController");
-
-        // 4. 서버 시작
-        tomcat.getConnector();
-        tomcat.start();
-        tomcat.getServer().await();
 
     }
 }
