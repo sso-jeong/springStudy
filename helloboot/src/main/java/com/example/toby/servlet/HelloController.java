@@ -1,4 +1,4 @@
-package com.example.toby;
+package com.example.toby.servlet;
 
 import com.example.toby.dispatcherServlet.HelloService;
 
